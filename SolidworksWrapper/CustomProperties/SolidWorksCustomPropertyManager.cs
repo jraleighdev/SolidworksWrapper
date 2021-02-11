@@ -8,10 +8,20 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.CustomProperties
 {
+    /// <summary>
+    /// Manages interaction with the Solidworks document
+    /// </summary>
     public class SolidWorksCustomPropertyManager : List<string>, IDisposable
     {
+        /// <summary>
+        /// Reference to the Custom Property Manager interop 
+        /// </summary>
         public ICustomPropertyManager _propertyManager;
 
+        /// <summary>
+        /// Stores the reference to the interop and gets all the property names
+        /// </summary>
+        /// <param name="propertyManager"></param>
         public SolidWorksCustomPropertyManager(ICustomPropertyManager propertyManager)
         {
             _propertyManager = propertyManager;
@@ -26,6 +36,12 @@ namespace SolidworksWrapper.CustomProperties
             }
         }
 
+        /// <summary>
+        /// Sets the value of a property
+        /// </summary>
+        /// <param name="name">Name of the property to set</param>
+        /// <param name="value">New value for the property</param>
+        /// <exception cref="Exception">If the property could not be set an error will be thrown</exception>
         public void SetValue(string name, string value)
         {
             var prop = this.FirstOrDefault(x => x == name);
@@ -45,6 +61,12 @@ namespace SolidworksWrapper.CustomProperties
             }
         }
 
+        /// <summary>
+        /// Gets the value of the given property
+        /// </summary>
+        /// <param name="name">Name of the property to pull the value from</param>
+        /// <returns></returns>
+        /// <exception cref="Exception">If property does not exist it will throw an error</exception>
         public string GetValue(string name)
         {
             var prop = this.FirstOrDefault(x => x == name);

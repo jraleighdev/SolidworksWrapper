@@ -11,18 +11,33 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Configurations
 {
+    /// <summary>
+    /// Solidworks configuration
+    /// </summary>
     public class SolidworksConfiguration : IDisposable
     {
         private SolidWorksCustomPropertyManager _properties;
 
         private SolidWorksComponent _rootComponent;
 
+        /// <summary>
+        /// Reference to the interop configuration
+        /// </summary>
         public IConfiguration _configuration;
 
+        /// <summary>
+        /// Name of the configuration
+        /// </summary>
         public string Name => _configuration.Name;
 
+        /// <summary>
+        /// Description of the configuration
+        /// </summary>
         public string Description => _configuration.Description;
-
+        
+        /// <summary>
+        /// Gets the root component of the configuration
+        /// </summary>
         public SolidWorksComponent RootComponent
         {
             get
@@ -42,6 +57,9 @@ namespace SolidworksWrapper.Configurations
             }
         }
 
+        /// <summary>
+        /// Gets the custom properties configuration
+        /// </summary>
         public SolidWorksCustomPropertyManager Properties
         {
             get

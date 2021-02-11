@@ -8,10 +8,20 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.EquationManager
 {
+    /// <summary>
+    /// Manages get and setting equations
+    /// </summary>
     public class SolidworksEquationManager : List<SolidworksEquation>, IDisposable
     {
+        /// <summary>
+        /// Reference to the source solidworks equation manager
+        /// </summary>
         public IEquationMgr _equationMgr;
 
+        /// <summary>
+        /// Sets the source interop object and creates a list of equations
+        /// </summary>
+        /// <param name="equationMgr"></param>
         public SolidworksEquationManager(IEquationMgr equationMgr)
         {
             _equationMgr = equationMgr;
@@ -24,11 +34,22 @@ namespace SolidworksWrapper.EquationManager
             }
         }
 
+        /// <summary>
+        /// Gets the equation by name
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
         public SolidworksEquation GetEquation(string name)
         {
             return this.FirstOrDefault(x => x.Name.ToUpper() == name.ToUpper());
         }
 
+        /// <summary>
+        /// Sets the value of the equation
+        /// </summary>
+        /// <param name="name">Name of the equation</param>
+        /// <param name="value">New value for the equation</param>
+        /// <param name="isGlobal">If the equation should be global</param>
         public void SetEquation(string name, double value, bool isGlobal = true)
         {
             var equation = this.FirstOrDefault(x => x.Name.ToUpper() == name.ToUpper() && x.IsGlobal == isGlobal);

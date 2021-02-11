@@ -8,10 +8,17 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Components
 {
+    /// <summary>
+    /// Solidworks component collection
+    /// </summary>
     public class SolidworksComponents : List<SolidWorksComponent>, IDisposable
     {
         private List<Tuple<SolidWorksComponent, bool>> _capturedState;
 
+        /// <summary>
+        /// Gets the components from an array of objects
+        /// </summary>
+        /// <param name="comps"></param>
         public SolidworksComponents(object[] comps)
         {
             if (comps != null && comps.Count() > 0)
@@ -25,6 +32,10 @@ namespace SolidworksWrapper.Components
             }
         }
 
+        /// <summary>
+        /// Captures the suppression state of all components in the model
+        /// Some operations in solidworks un-suppressing all makes the operation simple
+        /// </summary>
         public void CaptureSuppressionState()
         {
             _capturedState = new List<Tuple<SolidWorksComponent, bool>>();
@@ -32,6 +43,9 @@ namespace SolidworksWrapper.Components
             ForEach(x => _capturedState.Add(new Tuple<SolidWorksComponent, bool>(x, x.Suppressed)));;
         }
 
+        /// <summary>
+        /// Restores a previous capture state
+        /// </summary>
         public void RestoreSuppressionState()
         {
             if (_capturedState != null && _capturedState.Count > 0)
@@ -48,8 +62,16 @@ namespace SolidworksWrapper.Components
             }
         }
 
+        /// <summary>
+        /// Unsupress all the components
+        /// </summary>
         public void UnsuppressAll() => ForEach(x => x.Suppressed = false);
 
+        /// <summary>
+        /// Gets all the referenced document names from the active document
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public List<string> GetReferencedDocumentsNames()
         {
             var tempList = new List<string>();
@@ -72,7 +94,7 @@ namespace SolidworksWrapper.Components
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("Could not retreive document name " + ex.ToString());
+                        throw new Exception("Could not retrieve document name " + ex.ToString());
                     }
 
                     tempList.Add(c.SolidworksDocument.FullFileName);
@@ -84,6 +106,11 @@ namespace SolidworksWrapper.Components
             return tempList;
         }
 
+        /// <summary>
+        /// Gets the referenced documents from the active assembly
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="Exception"></exception>
         public List<SolidworksDocument> GetReferencedDocuments()
         {
             var tempList = new List<SolidworksDocument>();
@@ -106,7 +133,7 @@ namespace SolidworksWrapper.Components
                     }
                     catch (Exception ex)
                     {
-                        throw new Exception("Could not retreive document name " + ex.ToString());
+                        throw new Exception("Could not retrieve document name " + ex.ToString());
                     }
 
                     tempList.Add(c.SolidworksDocument);

@@ -8,10 +8,18 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.CopyTools
 {
+    /// <summary>
+    /// Helper for copying solidworks document
+    /// </summary>
     public class SolidworksCopyHelpers
     {
         private SolidworksDocument _topDocument;
 
+        /// <summary>
+        /// Sets the document reference and loads and all the subassemblies
+        /// </summary>
+        /// <param name="document"></param>
+        /// <param name="paths"></param>
         public void References(SolidworksDocument document, List<Tuple<string, string>> paths)
         {
             _topDocument = document;

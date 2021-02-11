@@ -103,8 +103,5 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolidworksApplication.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Proper\" />
-  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

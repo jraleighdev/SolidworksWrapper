@@ -9,8 +9,14 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Features
 {
+    /// <summary>
+    /// Solidworks feature 
+    /// </summary>
     public class SolidworksFeature : IDisposable
     {
+        /// <summary>
+        /// Source solidworks interop feature
+        /// </summary>
         public IFeature _feature;
 
         public SolidworksFeature(IFeature feature)
@@ -18,14 +24,30 @@ namespace SolidworksWrapper.Features
             _feature = feature;
         }
 
+        /// <summary>
+        /// Name of the feature
+        /// </summary>
         public string Name => _feature.Name;
 
+        /// <summary>
+        /// Description of the feature
+        /// </summary>
         public string Description => _feature.Description;
 
+        /// <summary>
+        /// Type of the feature
+        /// </summary>
         public string TypeName => _feature.GetTypeName2();
 
+        /// <summary>
+        /// Select the feature
+        /// </summary>
+        /// <returns>If the feature was successfully selected will return true</returns>
         public bool Select() => _feature.Select2(true, 0);
 
+        /// <summary>
+        /// Gets and sets the status of the feature
+        /// </summary>
         public bool Suppressed
         {
             get => _feature.IsSuppressed2(1, null)[0];
@@ -33,6 +55,11 @@ namespace SolidworksWrapper.Features
             set => _feature.SetSuppression2(value ? 0 : 1, 0, null);
         }
 
+        /// <summary>
+        /// Sets the weldment configuration of the feature
+        /// </summary>
+        /// <param name="name"></param>
+        /// <exception cref="Exception"></exception>
         public void SetWeldmentConfiguration(string name)
         {
             IStructuralMemberFeatureData featureData = _feature.GetDefinition() as IStructuralMemberFeatureData;

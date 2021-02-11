@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.General
 {
+    /// <summary>
+    /// Types of the units
+    /// </summary>
     public enum UnitTypes
     {
         In,

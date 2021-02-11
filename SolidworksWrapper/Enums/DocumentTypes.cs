@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Enums
 {
+    /// <summary>
+    /// Document types
+    /// </summary>
     public enum DocumentTypes
     {
         NONE = 0,

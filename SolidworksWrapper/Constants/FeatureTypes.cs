@@ -8,6 +8,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Constants
 {
+    /// <summary>
+    /// Feature types in the model
+    /// </summary>
     public class FeatureTypes
     {
         public const string Edge = "EDGE";

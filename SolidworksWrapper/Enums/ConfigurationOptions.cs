@@ -7,6 +7,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Enums
 {
+    /// <summary>
+    /// Configuration options for a document
+    /// </summary>
     public enum ConfigurationOptions
     {
         ConfigPropertySuppressFeatures = 0,

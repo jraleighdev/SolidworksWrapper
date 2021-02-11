@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Constants
 {
+    /// <summary>
+    /// Subtype categories for the features
+    /// </summary>
     public class FeatureSubTypeCategories
     {
         public const string Assembly = "Assembly";

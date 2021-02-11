@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Enums
 {
+    /// <summary>
+    /// Types of dimensions
+    /// </summary>
     public enum DimensionTypes
     {
         Angular = 1,

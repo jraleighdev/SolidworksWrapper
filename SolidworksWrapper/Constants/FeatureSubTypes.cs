@@ -8,6 +8,10 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Constants
 {
+    /// <summary>
+    /// Sub types of features
+    /// Category Attribute stores the sub category
+    /// </summary>
     public class FeatureSubTypes
     {
         [Category(FeatureSubTypeCategories.Assembly)]

@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Components
 {
+    /// <summary>
+    /// Solidworks component
+    /// </summary>
     public class SolidWorksComponent : IDisposable
     {
         private SolidworksDocument _document;
@@ -18,8 +21,14 @@ namespace SolidworksWrapper.Components
 
         private SolidworksComponents _children;
 
+        /// <summary>
+        /// Reference to the component interop
+        /// </summary>
         public IComponent2 _component;
 
+        /// <summary>
+        /// Unique id for the component
+        /// </summary>
         public Guid Id { get; private set; }
 
         public SolidWorksComponent(IComponent2 component)
@@ -28,24 +37,36 @@ namespace SolidworksWrapper.Components
             Id = Guid.NewGuid();
         }
 
+        /// <summary>
+        /// Gets and sets the value of the component
+        /// </summary>
         public string Name
         {
             get => _component.Name2;
             set => _component.Name2 = value;
         }
 
+        /// <summary>
+        /// Gets sets the configuration for the component
+        /// </summary>
         public string ReferencedConfiguration
         {
             get => _component.ReferencedConfiguration;
             set => _component.ReferencedConfiguration = value;
         }
 
+        /// <summary>
+        /// Gets and sets the suppression status of the component
+        /// </summary>
         public bool Suppressed
         {
             get => _component.GetSuppression2() == 0;
             set => _component.SetSuppression2(value ? 0 : 3);
         }
 
+        /// <summary>
+        /// Document for the referenced component
+        /// </summary>
         public SolidworksDocument SolidworksDocument
         {
             get
@@ -63,6 +84,9 @@ namespace SolidworksWrapper.Components
             }
         }
 
+        /// <summary>
+        /// Parent component of the this
+        /// </summary>
         public SolidWorksComponent Parent
         {
             get
@@ -80,6 +104,9 @@ namespace SolidworksWrapper.Components
             }
         }
 
+        /// <summary>
+        /// Children of this component
+        /// </summary>
         public List<SolidWorksComponent> Children
         {
             get
@@ -93,6 +120,10 @@ namespace SolidworksWrapper.Components
             }
         }
 
+        /// <summary>
+        /// Selects the component
+        /// </summary>
+        /// <returns></returns>
         public bool Select()
         {
             return _component.Select4(true, null, false);

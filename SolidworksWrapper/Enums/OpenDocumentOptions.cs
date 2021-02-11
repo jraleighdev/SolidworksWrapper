@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 
 namespace SolidworksWrapper.Enums
 {
+    /// <summary>
+    /// Options for opening a document
+    /// </summary>
     public enum OpenDocumentOptions
     {
         Silent = 1,
