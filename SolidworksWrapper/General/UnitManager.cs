@@ -13,7 +13,7 @@ namespace SolidworksWrapper.General
     public static class UnitManager
     {
         /// <summary>
-        /// Lenght units the wrapper is sending to solidworks
+        /// Length units the wrapper is sending to solidworks
         /// </summary>
         public static UnitTypes UnitTypes { get; set; } = UnitTypes.In;
 

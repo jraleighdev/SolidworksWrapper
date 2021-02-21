@@ -6,9 +6,9 @@ using System.Runtime.InteropServices;
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
 [assembly: AssemblyTitle("SolidworksWrapper")]
-[assembly: AssemblyDescription("")]
+[assembly: AssemblyDescription("Dotnet wrapper for Solidworks")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("")]
+[assembly: AssemblyCompany("jraleighdev")]
 [assembly: AssemblyProduct("SolidworksWrapper")]
 [assembly: AssemblyCopyright("Copyright ©  2020")]
 [assembly: AssemblyTrademark("")]

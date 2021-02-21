@@ -23,7 +23,7 @@ namespace SolidworksWrapper.CaptureDtos
         public List<FeatureCapture> Features { get; set; }
 
         /// <summary>
-        /// Adds the dimension to the colection
+        /// Adds the dimension to the collection
         /// </summary>
         /// <param name="dimension"></param>
         public void AddDim(DimensionCapture dimension)

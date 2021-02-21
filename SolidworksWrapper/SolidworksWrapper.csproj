@@ -103,5 +103,8 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SolidworksApplication.cs" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="SolidworksWrapper.nuspec" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

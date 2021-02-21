@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>SolidworksWrapper</id>
+    <version>1.0.0</version>
+    <title>SolidworksWrapper</title>
+    <authors>jraleighdev</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>https://github.com/jraleighdev/SolidworksWrapper</projectUrl>
+    <description>Dotnet wrapper for solidworks</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>Copyright 2021</copyright>
+    <tags>Solidworks</tags>
+  </metadata>
+</package>
