@@ -55,7 +55,7 @@ namespace SolidworksWrapper.CustomProperties
 
             if (success != 0)
             {
-                var message = success == 1 ? "Custom property does not exist" : "Specied value has incorrect type";
+                var message = success == 1 ? "Custom property does not exist" : "Specified value has incorrect type";
 
                 throw new Exception(message);
             }
