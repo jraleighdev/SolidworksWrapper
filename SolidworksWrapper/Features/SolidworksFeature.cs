@@ -66,7 +66,7 @@ namespace SolidworksWrapper.Features
 
             if (featureData == null) throw new Exception("Feature is not valid weldment member");
 
-            var a = featureData.AccessSelections((ModelDoc2)SolidworksApplication.ActiveDocument._doc, null);
+            var a = featureData.AccessSelections((ModelDoc2)SolidworksApplication.ActiveDocument.UnSafeObject, null);
 
             if (string.IsNullOrEmpty(featureData.ConfigurationName))
             {
@@ -86,7 +86,7 @@ namespace SolidworksWrapper.Features
                 featureData.ConfigurationName = name;
             }
 
-            _feature.ModifyDefinition(featureData, (ModelDoc2)SolidworksApplication.ActiveDocument._doc, null);
+            _feature.ModifyDefinition(featureData, (ModelDoc2)SolidworksApplication.ActiveDocument.UnSafeObject, null);
         }
 
         public void Dispose()

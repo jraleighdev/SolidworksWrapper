@@ -41,9 +41,9 @@ namespace SolidworksWrapper.CopyTools
 
                 c.Select();
 
-                var adoc = document._doc as AssemblyDoc;
+                var adoc = document.UnSafeObject as AssemblyDoc;
 
-                if (adoc == null) continue;
+                if (!document.IsAssemblyDoc) continue;
 
                 adoc.ReplaceComponents(refPath.Item2, c.ReferencedConfiguration, false, true);
 

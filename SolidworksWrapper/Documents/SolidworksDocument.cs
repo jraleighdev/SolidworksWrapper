@@ -1,5 +1,6 @@
 ﻿using SolidWorks.Interop.sldworks;
 using SolidWorks.Interop.swconst;
+using SolidworksWrapper.Base;
 using SolidworksWrapper.CaptureDtos;
 using SolidworksWrapper.Components;
 using SolidworksWrapper.Configurations;
@@ -24,7 +25,7 @@ namespace SolidworksWrapper.Documents
     /// <summary>
     /// Solidworks document base object
     /// </summary>
-    public class SolidworksDocument : IDisposable
+    public class SolidworksDocument : SolidworksBaseObject<IModelDoc2>
     {
         #region Fields
 
@@ -34,24 +35,7 @@ namespace SolidworksWrapper.Documents
 
         private SolidworksComponents _children;
 
-        #endregion
-
-        #region Interops
-
-        /// <summary>
-        /// Source interop for the document
-        /// </summary>
-        public IModelDoc2 _doc;
-
-        /// <summary>
-        /// Source interop for the document extensions
-        /// </summary>
-        public IModelDocExtension _extension;
-
-        /// <summary>
-        /// Source interop for the selecting
-        /// </summary>
-        public ISelectionMgr _selectionMgr;
+        private SolidworksDrawingDocument _drawingDocument;
 
         #endregion
 
@@ -65,12 +49,12 @@ namespace SolidworksWrapper.Documents
         /// <summary>                                                                                                                         
         /// Full name of the document                                                                                                         
         /// </summary>                                                                                                                        
-        public string Title => _doc.GetTitle();
+        public string Title => BaseObject.GetTitle();
 
         /// <summary>                                                                                                                         
         /// Full file path of the document                                                                                                    
         /// </summary>                                                                                                                        
-        public string FullFileName => _doc.GetPathName();
+        public string FullFileName => BaseObject.GetPathName();
 
         /// <summary>                                                                                                                         
         /// File name of the document                                                                                                         
@@ -84,7 +68,7 @@ namespace SolidworksWrapper.Documents
         {
             get
             {
-                string[] configNames = _doc.GetConfigurationNames();
+                string[] configNames = BaseObject.GetConfigurationNames();
 
                 return configNames.ToList();
             }
@@ -93,7 +77,7 @@ namespace SolidworksWrapper.Documents
         /// <summary>                                                                                                                         
         /// Type of the document                                                                                                              
         /// </summary>                                                                                                                        
-        public DocumentTypes DocumentType => (DocumentTypes) _doc.GetType();
+        public DocumentTypes DocumentType => (DocumentTypes) BaseObject.GetType();
 
         /// <summary>                                                                                                                         
         /// If the document is an assembly document                                                                                           
@@ -119,7 +103,7 @@ namespace SolidworksWrapper.Documents
             {
                 if (_equationManger == null)
                 {
-                    _equationManger = new SolidworksEquationManager(_doc.GetEquationMgr());
+                    _equationManger = new SolidworksEquationManager(BaseObject.GetEquationMgr());
                 }
 
                 return _equationManger;
@@ -135,7 +119,7 @@ namespace SolidworksWrapper.Documents
             {
                 if (_properties == null)
                 {
-                    _properties = new SolidWorksCustomPropertyManager(_doc.Extension.CustomPropertyManager[""]);
+                    _properties = new SolidWorksCustomPropertyManager(BaseObject.Extension.CustomPropertyManager[""]);
                 }
 
                 return _properties;
@@ -146,7 +130,7 @@ namespace SolidworksWrapper.Documents
         /// Active configuration for the document                                                                                             
         /// </summary>                                                                                                                        
         public SolidworksConfiguration ActiveConfiguration =>
-            new SolidworksConfiguration(_doc.ConfigurationManager.ActiveConfiguration);
+            new SolidworksConfiguration(BaseObject.ConfigurationManager.ActiveConfiguration);
 
         /// <summary>                                                                                                                         
         /// Gets the children for the document                                                                                                
@@ -161,11 +145,7 @@ namespace SolidworksWrapper.Documents
 
             if (_children == null || refresh)
             {
-                AssemblyDoc adoc = _doc as AssemblyDoc;
-
-                if (adoc == null) return null;
-
-                _children = new SolidworksComponents(adoc.GetComponents(toplevelOnly));
+                _children = new SolidworksComponents(AsAssembly().GetComponents(toplevelOnly));
             }
 
             return _children;
@@ -177,14 +157,47 @@ namespace SolidworksWrapper.Documents
         /// Sets the source interops
         /// </summary>
         /// <param name="doc"></param>
-        public SolidworksDocument(IModelDoc2 doc)
+        public SolidworksDocument(IModelDoc2 doc) : base(doc)
         {
-            _doc = doc;
-            _extension = doc.Extension;
-            _selectionMgr = doc.SelectionManager;
         }
 
+        #region Casting
+
+        /// <summary>
+        /// Casts source object to an Assembly
+        /// </summary>
+        protected AssemblyDoc AsAssembly() => (AssemblyDoc)BaseObject;
+
+        /// <summary>
+        /// Casts source object as a drawing
+        /// </summary>
+        protected DrawingDoc AsDrawing() => (DrawingDoc)BaseObject;
+
+        /// <summary>
+        /// Casts source object as a part
+        /// </summary>
+        protected PartDoc AsPart() => (PartDoc)BaseObject;
+
+        #endregion
+
+
         #region Methods
+
+        /// <summary>
+        /// Get a drawing document from the referenced document
+        /// </summary>
+        /// <returns></returns>
+        public SolidworksDrawingDocument DrawingDocument()
+        {
+            if (!IsDrawingDoc) throw new Exception("Document is not a drawing document");
+
+            if (_drawingDocument == null)
+            {
+                _drawingDocument = new SolidworksDrawingDocument(AsDrawing());
+            }
+
+            return _drawingDocument;
+        }
 
         /// <summary>
         /// Closes the document
@@ -206,7 +219,7 @@ namespace SolidworksWrapper.Documents
             int warnings = 0;
 
 
-            _doc.Save3(1, ref errors, ref warnings);
+            BaseObject.Save3(1, ref errors, ref warnings);
         }
 
         /// <summary>
@@ -218,14 +231,14 @@ namespace SolidworksWrapper.Documents
             int errors = 0;
             int warnings = 0;
 
-            _extension.SaveAs3(name, 0, 1, null, null, ref errors, ref warnings);
+            BaseObject.Extension.SaveAs3(name, 0, 1, null, null, ref errors, ref warnings);
         }
 
         /// <summary>
         /// Show the given configuration
         /// </summary>
         /// <param name="name">Name of the configuration to show</param>
-        public void ShowConfiguration(string name) => _doc.ShowConfiguration2(name);
+        public void ShowConfiguration(string name) => BaseObject.ShowConfiguration2(name);
 
         /// <summary>
         /// Checks if the configuration exists in the active document
@@ -237,7 +250,7 @@ namespace SolidworksWrapper.Documents
         /// <summary>
         /// Clear the selection the manager
         /// </summary>
-        public void ClearSelection() => _doc.ClearSelection2(true);
+        public void ClearSelection() => BaseObject.ClearSelection2(true);
 
         /// <summary>
         /// Gets the selected and returns it
@@ -245,7 +258,7 @@ namespace SolidworksWrapper.Documents
         /// <returns></returns>
         public SolidworksFeature GetSelectedFeature()
         {
-            var feature = _selectionMgr.GetSelectedObject6(1, 0) as IFeature;
+            var feature = BaseObject.SelectionManager.GetSelectedObject6(1, 0) as IFeature;
 
             if (feature != null)
             {
@@ -261,7 +274,7 @@ namespace SolidworksWrapper.Documents
         /// <returns></returns>
         public SolidWorksComponent GetSelectedComponent()
         {
-            var component = _selectionMgr.GetSelectedObject6(1, 0) as IComponent2;
+            var component = BaseObject.SelectionManager.GetSelectedObject6(1, 0) as IComponent2;
 
             if (component != null)
             {
@@ -276,7 +289,7 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public void HideSelected()
         {
-            _doc.HideComponent2();
+            BaseObject.HideComponent2();
         }
 
         /// <summary>
@@ -284,7 +297,7 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public void ShowSelected()
         {
-            _doc.ShowComponent2();
+            BaseObject.ShowComponent2();
         }
 
         /// <summary>
@@ -292,7 +305,7 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public void UnsuppressSelected()
         {
-            _doc.EditUnsuppress2();
+            BaseObject.EditUnsuppress2();
         }
 
         /// <summary>
@@ -300,14 +313,14 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public void SuppressSelected()
         {
-            _doc.EditSuppress2();
+            BaseObject.EditSuppress2();
         }
 
         /// <summary>
         /// Get the count of the selected objects
         /// </summary>
         /// <returns></returns>
-        public int SelectedCount() => _selectionMgr.GetSelectedObjectCount2(0);
+        public int SelectedCount() => BaseObject.SelectionManager.GetSelectedObjectCount2(0);
 
         /// <summary>
         /// Select the a object in the document by name and type
@@ -315,15 +328,24 @@ namespace SolidworksWrapper.Documents
         /// <param name="name">Name of the feature to select</param>
         /// <param name="type">Type of feature in the document</param>
         /// <returns></returns>
-        public bool Select(string name, string type) => _extension.SelectByID2(name, type, 0, 0, 0, false, -1, null,
+        public bool Select(string name, string type) => BaseObject.SelectionManager.SelectByID2(name, type, 0, 0, 0, false, -1, null,
             (int) swSelectOption_e.swSelectOptionDefault);
+
+        /// <summary>
+        /// Deletes the selected item in the document
+        /// </summary>
+        /// <param name="deleteOption"></param>
+        public void DeleteSelected(DeleteOptions deleteOption = DeleteOptions.Absorbed)
+        {
+            BaseObject.Extension.DeleteSelection2((int)deleteOption);
+        }
 
         /// <summary>
         /// Rebuild the document
         /// </summary>
         public void Rebuild()
         {
-            _doc.Rebuild(1);
+            BaseObject.Rebuild(1);
         }
 
         /// <summary>
@@ -331,7 +353,7 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public void ForceRebuildAll()
         {
-            _doc.Extension.ForceRebuildAll();
+            BaseObject.Extension.ForceRebuildAll();
         }
 
         public void SetSelectedWeldmentConfiguration(string name)
@@ -345,7 +367,7 @@ namespace SolidworksWrapper.Documents
         /// <returns></returns>
         public SolidworksDimension GetSolidworksDimension(string name)
         {
-            IDimension dim = _doc.Parameter(name) as IDimension;
+            IDimension dim = BaseObject.Parameter(name) as IDimension;
 
             if (dim == null) return null;
 
@@ -368,7 +390,7 @@ namespace SolidworksWrapper.Documents
                     || x.GetCategoryAttribute() == FeatureSubTypeCategories.Component)
                 .Select(x => x.GetValue(x).ToString());
 
-            Feature feature = _doc.FirstFeature();
+            Feature feature = BaseObject.FirstFeature();
 
             while (feature != null)
             {
@@ -416,14 +438,13 @@ namespace SolidworksWrapper.Documents
             return designCapture;
         }
 
-        #endregion
-        
-        public void Dispose()
+        public void ReplaceComponents(string fileName, string configuration, bool replaceAllInstace = false, bool reAttachMates = true)
         {
-            if (_doc != null)
-            {
-                Marshal.ReleaseComObject(_doc);
-            }
+            if (!IsAssemblyDoc) throw new Exception("Document must be an assembly document");
+
+            AsAssembly().ReplaceComponents(fileName, configuration, replaceAllInstace, reAttachMates);
         }
+
+        #endregion
     }
 }

@@ -77,6 +77,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Base\SolidworksBaseObject.cs" />
     <Compile Include="CaptureDtos\DesignCapture.cs" />
     <Compile Include="CaptureDtos\DimensionCapture.cs" />
     <Compile Include="CaptureDtos\FeatureCapture.cs" />
@@ -89,8 +90,23 @@
     <Compile Include="CopyTools\CopyHelpers.cs" />
     <Compile Include="CustomProperties\SolidWorksCustomPropertyManager.cs" />
     <Compile Include="Dimensions\SolidworksDimension.cs" />
+    <Compile Include="Documents\SolidworksDrawingDocument.cs" />
     <Compile Include="Documents\SolidworksDocument.cs" />
+    <Compile Include="Drawing\Enums\AlignmentTypeEnum.cs" />
+    <Compile Include="Drawing\Enums\DetailViewCircleShow.cs" />
+    <Compile Include="Drawing\Enums\DetailViewStyleEnum.cs" />
+    <Compile Include="Drawing\Enums\DwgTemplateSize.cs" />
+    <Compile Include="Drawing\Enums\PaperSizeEnum.cs" />
+    <Compile Include="Drawing\Points\Classes\SolidworksDelegatePoint.cs" />
+    <Compile Include="Drawing\Points\Classes\SolidworksPoint.cs" />
+    <Compile Include="Drawing\Points\Enums\PointTypeEnum.cs" />
+    <Compile Include="Drawing\Points\Interfaces\ISolidworksPoint.cs" />
+    <Compile Include="Drawing\Views\SolidworksDrawingView.cs" />
+    <Compile Include="Drawing\Enums\DrawingTemplates.cs" />
+    <Compile Include="Drawing\Enums\PaperSizes.cs" />
+    <Compile Include="Drawing\Sheet\SolidworksSheet.cs" />
     <Compile Include="Enums\ConfigurationOptions.cs" />
+    <Compile Include="Enums\DeleteOptions.cs" />
     <Compile Include="Enums\DimensionTypes.cs" />
     <Compile Include="Enums\DocumentTypes.cs" />
     <Compile Include="Enums\OpenDocumentOptions.cs" />
@@ -106,5 +122,6 @@
   <ItemGroup>
     <None Include="SolidworksWrapper.nuspec" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
