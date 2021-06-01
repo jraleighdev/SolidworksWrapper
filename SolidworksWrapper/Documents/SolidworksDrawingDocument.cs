@@ -1,5 +1,4 @@
 ﻿using SolidWorks.Interop.sldworks;
-using SolidworksWrapper.Base;
 using SolidworksWrapper.Drawing.Views;
 using System;
 using System.Collections.Generic;
@@ -18,8 +17,10 @@ namespace SolidworksWrapper.Documents
     /// <summary>
     /// Solidworks Drawing document if created from the Solidworks document use dispose from the parent
     /// </summary>
-    public class SolidworksDrawingDocument : SolidworksBaseObject<IDrawingDoc>
+    public class SolidworksDrawingDocument
     {
+        public IDrawingDoc drawingDoc;
+
         /// <summary>
         /// Still testing out if this is a good work flow :)
         /// Idea is drawings can have a lot sheets, views, and curve collections so have a single place to dispose of all might make things easier
@@ -33,33 +34,34 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool ActivateSheet(string name) => BaseObject.ActivateSheet(name);
+        public bool ActivateSheet(string name) => drawingDoc.ActivateSheet(name);
 
         /// <summary>
-        /// Activate a view by name
+        /// Activate a viewRef by name
         /// </summary>
         /// <param name="name"></param>
         /// <returns></returns>
-        public bool ActivateView(string name) => BaseObject.ActivateView(name);
+        public bool ActivateView(string name) => drawingDoc.ActivateView(name);
 
         /// <summary>
         /// Get the current sheet count
         /// </summary>
         /// <returns></returns>
-        public int SheetCount() => BaseObject.GetSheetCount();
+        public int SheetCount() => drawingDoc.GetSheetCount();
 
         /// <summary>
         /// Get the sheet names
         /// </summary>
-        public string[] StringNames => BaseObject.GetSheetNames();
+        public string[] StringNames => drawingDoc.GetSheetNames();
 
         /// <summary>
         /// 
         /// </summary>
-        public int ViewCount => BaseObject.GetViewCount();
+        public int ViewCount => drawingDoc.GetViewCount();
 
-        public SolidworksDrawingDocument(SolidworksDocument documentRef, IDrawingDoc doc) : base(doc)
+        public SolidworksDrawingDocument(SolidworksDocument documentRef, IDrawingDoc doc)
         {
+            this.drawingDoc = doc;
             DocumentReference = documentRef;
             _disposables = new List<IDisposable>();
         }
@@ -69,7 +71,7 @@ namespace SolidworksWrapper.Documents
         /// <summary>
         /// Rebuild the document
         /// </summary>
-        public void Rebuild() => BaseObject.EditRebuild();
+        public void Rebuild() => drawingDoc.EditRebuild();
 
         #endregion
 
@@ -82,7 +84,7 @@ namespace SolidworksWrapper.Documents
         {
             get
             {
-                var sheet = new SolidworksSheet(BaseObject.GetCurrentSheet(), this);
+                var sheet = new SolidworksSheet(drawingDoc.GetCurrentSheet(), this);
 
                 _disposables.Add(sheet);
 
@@ -112,7 +114,7 @@ namespace SolidworksWrapper.Documents
         /// <returns></returns>
         public SolidworksSheet AddSheet(string name, PaperSizeEnum paperSize, DwgTemplateSize template, double scaleOne, double scaleTwo, bool firstAngle, string templateName, double width, double height, string propertyViewName, double zoneLeftMargin, double zoneRightMargin, double zoneTopMargin, double zoneBottomMargin, int zoneRow, int zoneCol)
         {
-            var success = BaseObject.NewSheet4(name, (int) paperSize, (int) template, scaleOne, scaleTwo,
+            var success = drawingDoc.NewSheet4(name, (int) paperSize, (int) template, scaleOne, scaleTwo,
                 firstAngle, templateName, width, height, propertyViewName, zoneLeftMargin, zoneRightMargin,
                 zoneTopMargin, zoneBottomMargin, zoneRow, zoneCol);
 
@@ -131,15 +133,15 @@ namespace SolidworksWrapper.Documents
         #region Views
 
         /// <summary>
-        /// Create detail view from a parent view
+        /// Create detail viewRef from a parent viewRef
         /// </summary>
-        /// <param name="x">X position for the detail view</param>
-        /// <param name="y">Y Position for the detail view</param>
-        /// <param name="style">Style of view based on <see cref="DetailViewStyleEnum"/> </param>
+        /// <param name="x">X position for the detail viewRef</param>
+        /// <param name="y">Y Position for the detail viewRef</param>
+        /// <param name="style">Style of viewRef based on <see cref="DetailViewStyleEnum"/> </param>
         /// <param name="scaleOne">Numerator value of the scale</param>
         /// <param name="scaleTwo">Denominator value of the scale</param>
-        /// <param name="label">View for the detail view</param>
-        /// <param name="showType">Type of the sketch for the detail view <see cref="DetailViewCircleShow"/></param>
+        /// <param name="label">View for the detail viewRef</param>
+        /// <param name="showType">Type of the sketch for the detail viewRef <see cref="DetailViewCircleShow"/></param>
         /// <param name="fullOutline">True to show a full outline, false to not; valid only if NoOutline is false</param>
         /// <param name="jaggedOutline">True to show a jagged outline, false to not; only valid if NoOutline is false</param>
         /// <param name="noOutline">True to not show an outline, false to show an outline</param>
@@ -148,7 +150,7 @@ namespace SolidworksWrapper.Documents
         /// <returns></returns>
         public SolidworksDrawingView CreateDetailView(double x, double y, DetailViewStyleEnum style, double scaleOne, double scaleTwo, string label, DetailViewCircleShow showType, bool fullOutline, bool jaggedOutline, bool noOutline,  double z = 0, int jaggedOutLine = 1)
         {
-            return BaseObject.CreateDetailViewAt4(x, y, z, (int) style, scaleOne, scaleTwo, label, (int) showType, fullOutline,
+            return drawingDoc.CreateDetailViewAt4(x, y, z, (int) style, scaleOne, scaleTwo, label, (int) showType, fullOutline,
                 jaggedOutline, noOutline, (int) jaggedOutLine);
 
         }
@@ -159,7 +161,7 @@ namespace SolidworksWrapper.Documents
 
             view.Select();
 
-            BaseObject.DrawingViewRotate(UnitManager.ConvertRadians(degrees));
+            drawingDoc.DrawingViewRotate(UnitManager.ConvertRadians(degrees));
 
             view.ClearSelection();
         }
@@ -172,7 +174,7 @@ namespace SolidworksWrapper.Documents
 
             view.Activate();
 
-            BaseObject.ViewDisplayHidden();
+            drawingDoc.ViewDisplayHidden();
         }
 
         public void InsertCenterMark(SolidworksDrawingView view, IEnumerable<ISolidworksPoint> points, CenterMarkStyleEnum style, bool applyToPattern, bool forSlot)
@@ -181,7 +183,7 @@ namespace SolidworksWrapper.Documents
 
             points.SelectAll();
 
-            var centerMarks = BaseObject.InsertCenterMark3((int)style, applyToPattern, forSlot);
+            var centerMarks = drawingDoc.InsertCenterMark3((int)style, applyToPattern, forSlot);
 
             if (style == CenterMarkStyleEnum.LinearGroup)
             {

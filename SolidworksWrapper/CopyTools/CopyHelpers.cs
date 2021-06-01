@@ -41,7 +41,7 @@ namespace SolidworksWrapper.CopyTools
 
                 c.Select();
 
-                var adoc = document.UnSafeObject as AssemblyDoc;
+                var adoc = document.modelDoc as AssemblyDoc;
 
                 if (!document.IsAssemblyDoc) continue;
 

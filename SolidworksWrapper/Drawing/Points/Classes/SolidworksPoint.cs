@@ -6,7 +6,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SolidWorks.Interop.sldworks;
-using SolidworksWrapper.Base;
 using SolidworksWrapper.Components;
 using SolidworksWrapper.Drawing.Points.Enums;
 using SolidworksWrapper.Drawing.Points.Interfaces;

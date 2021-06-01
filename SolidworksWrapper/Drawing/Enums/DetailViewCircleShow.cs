@@ -9,12 +9,12 @@ namespace SolidworksWrapper.Drawing.Enums
     public enum DetailViewCircleShow
     {
         /// <summary>
-        /// Use Sketch profile to create detail view
+        /// Use Sketch profile to create detail viewRef
         /// </summary>
         Profile = 0,
 
         /// <summary>
-        /// Use Sketch Circle to create detail view
+        /// Use Sketch Circle to create detail viewRef
         /// </summary>
         Circle = 1,
 

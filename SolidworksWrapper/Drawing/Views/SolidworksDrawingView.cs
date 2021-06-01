@@ -1,11 +1,11 @@
 ﻿using SolidWorks.Interop.sldworks;
-using SolidworksWrapper.Base;
 using SolidworksWrapper.Drawing.Sheet;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SolidWorks.Interop.SWRoutingLib;
@@ -22,12 +22,14 @@ using SolidworksWrapper.General;
 
 namespace SolidworksWrapper.Drawing.Views
 {
-    public class SolidworksDrawingView : SolidworksBaseObject<IView>
+    public class SolidworksDrawingView : IDisposable
     {
+        public IView viewRef;
+
         private SolidworksDocument _referencedDocument;
 
         /// <summary>
-        /// Id for the view used for tracking the views when creating and editing
+        /// Id for the viewRef used for tracking the views when creating and editing
         /// </summary>
         public Guid Id { get; private set; }
 
@@ -42,21 +44,21 @@ namespace SolidworksWrapper.Drawing.Views
 
         public string Name
         {
-            get => BaseObject.GetName2();
-            set => BaseObject.SetName2(value);
+            get => viewRef.GetName2();
+            set => viewRef.SetName2(value);
         }
 
-        public double X => UnitManager.UnitsFromSolidworks(BaseObject.Position[0]);
+        public double X => UnitManager.UnitsFromSolidworks(viewRef.Position[0]);
 
-        public double Y => UnitManager.UnitsFromSolidworks(BaseObject.Position[1]);
+        public double Y => UnitManager.UnitsFromSolidworks(viewRef.Position[1]);
 
-        public double MinX => UnitManager.UnitsFromSolidworks(BaseObject.GetOutline()[0]);
+        public double MinX => UnitManager.UnitsFromSolidworks(viewRef.GetOutline()[0]);
 
-        public double MinY => UnitManager.UnitsFromSolidworks(BaseObject.GetOutline()[1]);
+        public double MinY => UnitManager.UnitsFromSolidworks(viewRef.GetOutline()[1]);
 
-        public double MaxX => UnitManager.UnitsFromSolidworks(BaseObject.GetOutline()[2]);
+        public double MaxX => UnitManager.UnitsFromSolidworks(viewRef.GetOutline()[2]);
 
-        public double MaxY => UnitManager.UnitsFromSolidworks(BaseObject.GetOutline()[3]);
+        public double MaxY => UnitManager.UnitsFromSolidworks(viewRef.GetOutline()[3]);
 
         public double CenterX => MinX + (MaxX - MinX) / 2;
 
@@ -68,16 +70,16 @@ namespace SolidworksWrapper.Drawing.Views
 
         public double Scale
         {
-            get => BaseObject.ScaleDecimal;
-            set => BaseObject.ScaleDecimal = value;
+            get => viewRef.ScaleDecimal;
+            set => viewRef.ScaleDecimal = value;
         }
 
         public string RefrencedConfiguration
         {
-            get => BaseObject.ReferencedConfiguration;
+            get => viewRef.ReferencedConfiguration;
             set
             {
-                BaseObject.ReferencedConfiguration = value;
+                viewRef.ReferencedConfiguration = value;
                 Parent.Parent.Rebuild();
             }
         }
@@ -88,7 +90,7 @@ namespace SolidworksWrapper.Drawing.Views
             {
                 if (_referencedDocument == null)
                 {
-                    _referencedDocument = new SolidworksDocument(BaseObject.ReferencedDocument);
+                    _referencedDocument = new SolidworksDocument(viewRef.ReferencedDocument);
                 }
 
                 Disposables.Add(_referencedDocument);
@@ -97,7 +99,7 @@ namespace SolidworksWrapper.Drawing.Views
             }
         }
 
-        public bool IsBroken => BaseObject.IsBroken();
+        public bool IsBroken => viewRef.IsBroken();
 
         public bool BaseView { get; set; }
 
@@ -105,8 +107,9 @@ namespace SolidworksWrapper.Drawing.Views
 
         #endregion
 
-        public SolidworksDrawingView(IView comObject, SolidworksSheet parent) : base(comObject)
+        public SolidworksDrawingView(IView viewRef, SolidworksSheet parent)
         {
+            this.viewRef = viewRef;
             Id = Guid.NewGuid();
             Parent = parent;
             _mathUtils = SolidworksApplication._solidWorks.GetMathUtility();
@@ -142,7 +145,7 @@ namespace SolidworksWrapper.Drawing.Views
         {
             ClearSelection();
 
-            object[] annonations = BaseObject.GetAnnotations();
+            object[] annonations = viewRef.GetAnnotations();
 
             if (annonations == null) return;
 
@@ -160,16 +163,16 @@ namespace SolidworksWrapper.Drawing.Views
         {
             double[] newPosition = {UnitManager.UnitsToSolidworks(x), UnitManager.UnitsToSolidworks(y)};
 
-            BaseObject.Position = newPosition;
+            viewRef.Position = newPosition;
 
             Parent.Parent.Rebuild();
         }
 
         public bool AlignVertical(SolidworksDrawingView view) =>
-            BaseObject.AlignWithView((int) AlignmentTypeEnum.AlignViewHorizontalCenter, view.BaseObject as View);
+            viewRef.AlignWithView((int) AlignmentTypeEnum.AlignViewHorizontalCenter, view.viewRef as View);
 
         public bool AlignHorizontal(SolidworksDrawingView view) =>
-            BaseObject.AlignWithView((int)AlignmentTypeEnum.AlignViewVerticalCenter, view.BaseObject as View);
+            viewRef.AlignWithView((int)AlignmentTypeEnum.AlignViewVerticalCenter, view.viewRef as View);
 
         public void Rotate(double degrees)
         {
@@ -181,7 +184,7 @@ namespace SolidworksWrapper.Drawing.Views
         #region Entities
 
         public SolidworksComponents GetVisibleComponents() =>
-            new SolidworksComponents(BaseObject.GetVisibleComponents());
+            new SolidworksComponents(viewRef.GetVisibleComponents());
 
         public List<SolidworksDrawingEdge> Edges(SolidWorksComponent comp)
         {
@@ -192,7 +195,7 @@ namespace SolidworksWrapper.Drawing.Views
             Activate();
 
             object[] edges =
-                BaseObject.GetVisibleEntities2((Component2) comp.UnSafeObject, (int) ViewEntitiesEnum.Edge);
+                viewRef.GetVisibleEntities2((Component2) comp.component, (int) ViewEntitiesEnum.Edge);
 
             if (edges != null)
             {
@@ -240,8 +243,10 @@ namespace SolidworksWrapper.Drawing.Views
 
             Activate();
 
+            var name = comp.Name;
+
             object[] vertex =
-                BaseObject.GetVisibleEntities2((Component2) comp.UnSafeObject, (int) ViewEntitiesEnum.Vertex);
+                viewRef.GetVisibleEntities2((Component2) comp.component, (int) ViewEntitiesEnum.Vertex);
 
             var tempList = new List<ISolidworksPoint>();
 
@@ -281,7 +286,7 @@ namespace SolidworksWrapper.Drawing.Views
 
         public void CenterAllLinear()
         {
-            foreach (DisplayDimension d in BaseObject.GetDisplayDimensions())
+            foreach (DisplayDimension d in viewRef.GetDisplayDimensions())
             {
                 d.CenterText = true;
             }
@@ -289,7 +294,7 @@ namespace SolidworksWrapper.Drawing.Views
 
         public void AlignDimsWithView(double offset = 0.25)
         {
-            foreach (DisplayDimension d in BaseObject.GetDisplayDimensions())
+            foreach (DisplayDimension d in viewRef.GetDisplayDimensions())
             {
                 Annotation annotation = d.GetAnnotation();
 
@@ -442,32 +447,32 @@ namespace SolidworksWrapper.Drawing.Views
 
                 MathTransform compTransform = entComp.Transform2;
 
-                MathTransform viewTransform = BaseObject.ModelToViewTransform;
+                MathTransform viewTransform = viewRef.ModelToViewTransform;
 
                 MathPoint mPoint = _mathUtils.CreatePoint(point);
 
-                Sketch sketch = BaseObject.GetSketch();
+                Sketch sketch = viewRef.GetSketch();
 
                 MathTransform sketchTransform = sketch.ModelToSketchTransform;
 
                 // Transform the point by the component matrix
                 mPoint = mPoint.MultiplyTransform(compTransform);
 
+                mPoint = mPoint.MultiplyTransform(sketchTransform);
+
                 mPoint = mPoint.MultiplyTransform(SheetScaleTransform(transFormPosition));
 
                 mPoint = mPoint.MultiplyTransform(viewTransform);
-
-                mPoint = mPoint.IMultiplyTransform(sketchTransform);
 
                 point = mPoint.ArrayData;
             }
             else if (ReferencedDocument.IsPartDoc)
             {
-                MathTransform viewTransform = BaseObject.ModelToViewTransform;
+                MathTransform viewTransform = viewRef.ModelToViewTransform;
 
                 MathPoint mPoint = _mathUtils.CreatePoint(point);
 
-                Sketch sketch = BaseObject.GetSketch();
+                Sketch sketch = viewRef.GetSketch();
 
                 MathTransform sketchTransform = sketch.ModelToSketchTransform;
 
@@ -498,11 +503,11 @@ namespace SolidworksWrapper.Drawing.Views
 
                 MathTransform compTransform = entComp.Transform2;
 
-                MathTransform viewTransform = BaseObject.ModelToViewTransform;
+                MathTransform viewTransform = viewRef.ModelToViewTransform;
 
                 MathPoint mPoint = _mathUtils.CreatePoint(point);
 
-                Sketch sketch = BaseObject.GetSketch();
+                Sketch sketch = viewRef.GetSketch();
 
                 MathTransform sketchTransform = sketch.ModelToSketchTransform;
 
@@ -519,11 +524,11 @@ namespace SolidworksWrapper.Drawing.Views
             }
             else if (ReferencedDocument.IsPartDoc)
             {
-                MathTransform viewTransform = BaseObject.ModelToViewTransform;
+                MathTransform viewTransform = viewRef.ModelToViewTransform;
 
                 MathPoint mPoint = _mathUtils.CreatePoint(point);
 
-                Sketch sketch = BaseObject.GetSketch();
+                Sketch sketch = viewRef.GetSketch();
 
                 MathTransform sketchTransform = sketch.ModelToSketchTransform;
 
@@ -540,24 +545,24 @@ namespace SolidworksWrapper.Drawing.Views
 
         protected MathTransform SheetScaleTransform(bool transFormPosition = false, bool transformScale = true)
         {
-            var sheetProps = BaseObject.Sheet.GetProperties2();
+            var sheetProps = viewRef.Sheet.GetProperties2();
 
             var sheetScaleNom = sheetProps[2];
             var sheetScaleDenom = sheetProps[3];
 
             var sheetData = new double[16];
 
-            sheetData[0] = Math.Cos(BaseObject.Angle);
-            sheetData[1] = Math.Sin(BaseObject.Angle);
+            sheetData[0] = Math.Cos(viewRef.Angle);
+            sheetData[1] = Math.Sin(viewRef.Angle);
             sheetData[2] = 0;
-            sheetData[3] = (-1) * Math.Sin(BaseObject.Angle);
-            sheetData[4] = Math.Cos(BaseObject.Angle);
+            sheetData[3] = (-1) * Math.Sin(viewRef.Angle);
+            sheetData[4] = Math.Cos(viewRef.Angle);
             sheetData[5] = 0;
             sheetData[6] = 0;
             sheetData[7] = 0;
             sheetData[8] = 1;
-            sheetData[9] = transFormPosition ? BaseObject.Position[0] : 0;
-            sheetData[10] = transFormPosition ? BaseObject.Position[1] : 0;
+            sheetData[9] = transFormPosition ? viewRef.Position[0] : 0;
+            sheetData[10] = transFormPosition ? viewRef.Position[1] : 0;
             sheetData[11] = 0;
             sheetData[12] = transformScale ? sheetScaleNom / sheetScaleDenom : 1;
             sheetData[13] = 0;
@@ -570,7 +575,7 @@ namespace SolidworksWrapper.Drawing.Views
 
         #endregion
 
-        public override void Dispose()
+        public void Dispose()
         {
             foreach (var dis in Disposables)
             {
@@ -584,7 +589,11 @@ namespace SolidworksWrapper.Drawing.Views
                 }
             }
 
-            base.Dispose();
+            if (viewRef != null)
+            {
+                Marshal.ReleaseComObject(viewRef);
+                viewRef = null;
+            }
         }
 
     }

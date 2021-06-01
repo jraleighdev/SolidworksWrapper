@@ -77,7 +77,6 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Base\SolidworksBaseObject.cs" />
     <Compile Include="CaptureDtos\DesignCapture.cs" />
     <Compile Include="CaptureDtos\DimensionCapture.cs" />
     <Compile Include="CaptureDtos\FeatureCapture.cs" />
