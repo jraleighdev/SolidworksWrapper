@@ -8,6 +8,8 @@ using System.Text;
 using System.Threading.Tasks;
 using SolidWorks.Interop.swconst;
 using SolidworksWrapper.Drawing.Enums;
+using SolidworksWrapper.Drawing.Points.Extensions;
+using SolidworksWrapper.Drawing.Points.Interfaces;
 using SolidworksWrapper.Drawing.Sheet;
 using SolidworksWrapper.General;
 
@@ -23,6 +25,8 @@ namespace SolidworksWrapper.Documents
         /// Idea is drawings can have a lot sheets, views, and curve collections so have a single place to dispose of all might make things easier
         /// </summary>
         private List<IDisposable> _disposables;
+
+        public SolidworksDocument DocumentReference { get; private set; }
 
         /// <summary>
         /// Activate a sheet by name
@@ -54,8 +58,9 @@ namespace SolidworksWrapper.Documents
         /// </summary>
         public int ViewCount => BaseObject.GetViewCount();
 
-        public SolidworksDrawingDocument(IDrawingDoc doc) : base(doc)
+        public SolidworksDrawingDocument(SolidworksDocument documentRef, IDrawingDoc doc) : base(doc)
         {
+            DocumentReference = documentRef;
             _disposables = new List<IDisposable>();
         }
 
@@ -123,11 +128,7 @@ namespace SolidworksWrapper.Documents
         #endregion
 
 
-
-
         #region Views
-
-        
 
         /// <summary>
         /// Create detail view from a parent view
@@ -174,6 +175,21 @@ namespace SolidworksWrapper.Documents
             BaseObject.ViewDisplayHidden();
         }
 
+        public void InsertCenterMark(SolidworksDrawingView view, IEnumerable<ISolidworksPoint> points, CenterMarkStyleEnum style, bool applyToPattern, bool forSlot)
+        {
+            view.ClearSelection();
+
+            points.SelectAll();
+
+            var centerMarks = BaseObject.InsertCenterMark3((int)style, applyToPattern, forSlot);
+
+            if (style == CenterMarkStyleEnum.LinearGroup)
+            {
+                centerMarks.ConnectionLines = (int)CenterMarkConnectionLineEnum.ShowLinear;
+            }
+
+            view.ClearSelection();
+        }
 
         #endregion
 
@@ -198,6 +214,5 @@ namespace SolidworksWrapper.Documents
         }
 
         #endregion
-
     }
 }

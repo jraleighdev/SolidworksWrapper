@@ -11,8 +11,13 @@ using System.Threading.Tasks;
 using SolidWorks.Interop.SWRoutingLib;
 using SolidworksWrapper.Components;
 using SolidworksWrapper.Documents;
+using SolidworksWrapper.Drawing.Dimensions.Enums;
+using SolidworksWrapper.Drawing.Edge;
 using SolidworksWrapper.Drawing.Enums;
 using SolidworksWrapper.Drawing.Points.Classes;
+using SolidworksWrapper.Drawing.Points.Extensions;
+using SolidworksWrapper.Drawing.Points.Interfaces;
+using SolidworksWrapper.Enums;
 using SolidworksWrapper.General;
 
 namespace SolidworksWrapper.Drawing.Views
@@ -114,9 +119,9 @@ namespace SolidworksWrapper.Drawing.Views
 
         public bool Deactivate() => Parent.Parent.ActivateView("");
 
-        public bool Select() => SolidworksApplication.ActiveDocument.Select(Name, "DRAWINGVIEW");
+        public bool Select() => Parent.Parent.DocumentReference.Select(Name, "DRAWINGVIEW");
 
-        public void ClearSelection() => SolidworksApplication.ActiveDocument.ClearSelection();
+        public void ClearSelection() => Parent.Parent.DocumentReference.ClearSelection();
 
         public void Delete()
         {
@@ -124,7 +129,7 @@ namespace SolidworksWrapper.Drawing.Views
 
             Select();
 
-            SolidworksApplication.ActiveDocument.DeleteSelected();
+            Parent.Parent.DocumentReference.DeleteSelected();
 
             ClearSelection();
 
@@ -169,6 +174,254 @@ namespace SolidworksWrapper.Drawing.Views
         public void Rotate(double degrees)
         {
             Parent.Parent.Rotate(this, degrees);
+        }
+
+        #endregion
+
+        #region Entities
+
+        public SolidworksComponents GetVisibleComponents() =>
+            new SolidworksComponents(BaseObject.GetVisibleComponents());
+
+        public List<SolidworksDrawingEdge> Edges(SolidWorksComponent comp)
+        {
+            var tempList = new List<SolidworksDrawingEdge>();
+
+            Select();
+
+            Activate();
+
+            object[] edges =
+                BaseObject.GetVisibleEntities2((Component2) comp.UnSafeObject, (int) ViewEntitiesEnum.Edge);
+
+            if (edges != null)
+            {
+                foreach (IEntity e in edges)
+                {
+                    IEdge edge = e as IEdge;
+
+                    if (e != null)
+                    {
+                        tempList.Add(new SolidworksDrawingEdge(this, e, comp));
+                    }
+                }
+            }
+
+            return tempList;
+        }
+
+        public List<SolidworksDrawingEdge> Edges(IEnumerable<SolidWorksComponent> comps)
+        {
+            var tempList = new List<SolidworksDrawingEdge>();
+
+            foreach (var c in comps)
+            {
+                tempList.AddRange(Edges(c));
+            }
+
+            return tempList;
+        }
+
+        public List<ISolidworksPoint> Points(IEnumerable<SolidWorksComponent> comps)
+        {
+            var tempList = new List<ISolidworksPoint>();
+
+            foreach (var comp in comps)
+            {
+                tempList.AddRange(Points(comp));
+            }
+
+            return tempList;
+        }
+
+        public List<ISolidworksPoint> Points(SolidWorksComponent comp)
+        {
+            Select();
+
+            Activate();
+
+            object[] vertex =
+                BaseObject.GetVisibleEntities2((Component2) comp.UnSafeObject, (int) ViewEntitiesEnum.Vertex);
+
+            var tempList = new List<ISolidworksPoint>();
+
+            if (vertex == null) return tempList;
+
+            if (ReferencedDocument.IsAssemblyDoc)
+            {
+                foreach (IVertex v in vertex)
+                {
+                    if (v == null) continue;
+
+                    tempList.Add(TransformedPoint((IEntity)v, v.GetPoint(), false, comp));
+                }
+            }
+            else if (ReferencedDocument.IsPartDoc)
+            {
+                foreach (IVertex v in vertex)
+                {
+                    if (v == null) continue;
+                    
+                    tempList.Add(TransformedPoint((IEntity)v, v.GetPoint(), false, comp));
+                }
+            }
+
+            return tempList;
+        }
+
+        #endregion
+
+        #region Dimensions
+
+        public void CleanUpDims()
+        {
+            CenterAllLinear();
+            AlignDimsWithView();
+        }
+
+        public void CenterAllLinear()
+        {
+            foreach (DisplayDimension d in BaseObject.GetDisplayDimensions())
+            {
+                d.CenterText = true;
+            }
+        }
+
+        public void AlignDimsWithView(double offset = 0.25)
+        {
+            foreach (DisplayDimension d in BaseObject.GetDisplayDimensions())
+            {
+                Annotation annotation = d.GetAnnotation();
+
+                var xLocation = UnitManager.UnitsFromSolidworks(annotation.GetPosition()[0]);
+                var yLocation = UnitManager.UnitsFromSolidworks(annotation.GetPosition()[1]);
+
+                if (xLocation > MaxX)
+                {
+                    xLocation = MaxX - offset;
+                }
+                else if (xLocation < MinX)
+                {
+                    xLocation = MinX - offset;
+                }
+
+                if (yLocation > MaxY)
+                {
+                    yLocation = MaxY + offset;
+                }
+                else if (yLocation < MinY)
+                {
+                    yLocation = MinY - offset;
+                }
+
+                annotation.SetPosition2(UnitManager.UnitsToSolidworks(xLocation),
+                    UnitManager.UnitsToSolidworks(yLocation), 0.00);
+            }
+        }
+
+        public void AddDim(ISolidworksPoint pointOne, ISolidworksPoint pointTwo, DimensionOrientationEnum type,
+            double x, double y) => Parent.Parent.DocumentReference.AddDim(pointOne, pointTwo, type, x, y);
+
+        public void AddOrdinateDim(List<ISolidworksPoint> points, DimensionOrientationEnum type, double offset) =>
+            Parent.Parent.DocumentReference.AddOrdinateDim(this, points, type, offset);
+
+        public void AddDiameterDim(ISolidworksPoint point, double x, double y) =>
+            Parent.Parent.DocumentReference.AddDiameterDim(point, x, y);
+
+        #endregion
+
+        #region Center Marks and lines
+
+        public void AddCenterMark(IEnumerable<ISolidworksPoint> points,
+            CenterMarkStyleEnum style = CenterMarkStyleEnum.Single, bool applyToPattern = false, bool forSlot = false)
+        {
+            Parent.Parent.InsertCenterMark(this, points, style, applyToPattern, forSlot);
+        }
+
+        public void AddCenterLines(IEnumerable<ISolidworksPoint> points, bool vertical, bool horizontal,
+            double tolerance = 0.005)
+        {
+            ClearSelection();
+
+            if (vertical)
+            {
+                var verticalAddedPoint = new List<ISolidworksPoint>();
+
+                var orderPointsFromBottom = points.OrderBy(x => x.Y).ToList();
+
+                for (var i = 0; i < orderPointsFromBottom.Count - 1; i++)
+                {
+                    ClearSelection();
+
+                    var p = orderPointsFromBottom[i];
+
+                    if (verticalAddedPoint.Count > 0)
+                    {
+                        if (verticalAddedPoint.Any(x => x.PointsMatch(p))) continue;
+                    }
+
+                    var matchingYPoints = new List<ISolidworksPoint>();
+
+                    matchingYPoints.Add(p);
+
+                    for (var j = i + 1; j < orderPointsFromBottom.Count; j++)
+                    {
+                        var pointsToCompare = orderPointsFromBottom[j];
+
+                        if (Math.Abs(pointsToCompare.X - p.X) < tolerance)
+                        {
+                            matchingYPoints.Add(pointsToCompare);
+                        }
+                    }
+
+                    if (matchingYPoints.Count > 0)
+                    {
+                        verticalAddedPoint.AddRange(matchingYPoints);
+
+                        AddCenterMark(matchingYPoints, CenterMarkStyleEnum.LinearGroup, true);
+                    }
+                }
+            }
+
+            if (vertical)
+            {
+                var horizontalAddedPoint = new List<ISolidworksPoint>();
+
+                var orderPointsFromLeft = points.OrderBy(x => x.X).ToList();
+
+                for (var i = 0; i < orderPointsFromLeft.Count - 1; i++)
+                {
+                    ClearSelection();
+
+                    var p = orderPointsFromLeft[i];
+
+                    if (horizontalAddedPoint.Count > 0)
+                    {
+                        if (horizontalAddedPoint.Any(x => x.PointsMatch(p))) continue;
+                    }
+
+                    var matchingYPoints = new List<ISolidworksPoint>();
+
+                    matchingYPoints.Add(p);
+
+                    for (var j = i + 1; j < orderPointsFromLeft.Count; j++)
+                    {
+                        var pointsToCompare = orderPointsFromLeft[j];
+
+                        if (Math.Abs(pointsToCompare.X - p.Y) < tolerance)
+                        {
+                            matchingYPoints.Add(pointsToCompare);
+                        }
+                    }
+
+                    if (matchingYPoints.Count > 0)
+                    {
+                        horizontalAddedPoint.AddRange(matchingYPoints);
+
+                        AddCenterMark(matchingYPoints, CenterMarkStyleEnum.LinearGroup, true);
+                    }
+                }
+            }
         }
 
         #endregion

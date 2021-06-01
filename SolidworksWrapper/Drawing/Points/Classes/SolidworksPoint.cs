@@ -2,6 +2,7 @@
 using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using SolidWorks.Interop.sldworks;
@@ -12,12 +13,15 @@ using SolidworksWrapper.Drawing.Points.Interfaces;
 
 namespace SolidworksWrapper.Drawing.Points.Classes
 {
-    public class SolidworksPoint : SolidworksBaseObject<IEntity>, ISolidworksPoint
+    public class SolidworksPoint : ISolidworksPoint
     {
+        public IEntity _entity;
+
         public IVertex _vertex;
 
-        public SolidworksPoint(IEntity entity, double x, double y, SolidWorksComponent component) : base(entity)
+        public SolidworksPoint(IEntity entity, double x, double y, SolidWorksComponent component)
         {
+            _entity = entity;
             X = x;
             Y = y;
             Type = PointTypeEnum.Entity;
@@ -33,7 +37,23 @@ namespace SolidworksWrapper.Drawing.Points.Classes
         
         public void Select()
         {
-            BaseObject.Select4(true, null);
+            _entity.Select4(true, null);
+        }
+
+        public void Dispose()
+        {
+            if (_vertex != null)
+            {
+                Marshal.ReleaseComObject(_vertex);
+            }
+
+            if (_entity != null)
+            {
+                Marshal.ReleaseComObject(_entity);
+            }
+
+            _vertex = null;
+            _entity = null;
         }
     }
 }

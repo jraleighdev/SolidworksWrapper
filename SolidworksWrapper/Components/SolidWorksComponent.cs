@@ -7,13 +7,14 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SolidworksWrapper.Base;
 
 namespace SolidworksWrapper.Components
 {
     /// <summary>
     /// Solidworks component
     /// </summary>
-    public class SolidWorksComponent : IDisposable
+    public class SolidWorksComponent : SolidworksBaseObject<IComponent2>
     {
         private SolidworksDocument _document;
 
@@ -22,18 +23,12 @@ namespace SolidworksWrapper.Components
         private SolidworksComponents _children;
 
         /// <summary>
-        /// Reference to the component interop
-        /// </summary>
-        public IComponent2 _component;
-
-        /// <summary>
         /// Unique id for the component
         /// </summary>
         public Guid Id { get; private set; }
 
-        public SolidWorksComponent(IComponent2 component)
+        public SolidWorksComponent(IComponent2 component) : base(component)
         {
-            _component = component;
             Id = Guid.NewGuid();
         }
 
@@ -42,8 +37,8 @@ namespace SolidworksWrapper.Components
         /// </summary>
         public string Name
         {
-            get => _component.Name2;
-            set => _component.Name2 = value;
+            get => BaseObject.Name2;
+            set => BaseObject.Name2 = value;
         }
 
         /// <summary>
@@ -51,8 +46,8 @@ namespace SolidworksWrapper.Components
         /// </summary>
         public string ReferencedConfiguration
         {
-            get => _component.ReferencedConfiguration;
-            set => _component.ReferencedConfiguration = value;
+            get => BaseObject.ReferencedConfiguration;
+            set => BaseObject.ReferencedConfiguration = value;
         }
 
         /// <summary>
@@ -60,8 +55,8 @@ namespace SolidworksWrapper.Components
         /// </summary>
         public bool Suppressed
         {
-            get => _component.GetSuppression2() == 0;
-            set => _component.SetSuppression2(value ? 0 : 3);
+            get => BaseObject.GetSuppression2() == 0;
+            set => BaseObject.SetSuppression2(value ? 0 : 3);
         }
 
         /// <summary>
@@ -73,7 +68,7 @@ namespace SolidworksWrapper.Components
             {
                 if (_document == null)
                 {
-                    IModelDoc2 modelDoc = _component.GetModelDoc2();
+                    IModelDoc2 modelDoc = BaseObject.GetModelDoc2();
 
                     if (modelDoc == null) return null;
 
@@ -93,7 +88,7 @@ namespace SolidworksWrapper.Components
             {
                 if (_parent == null)
                 {
-                    IComponent2 parent = _component.GetParent();
+                    IComponent2 parent = BaseObject.GetParent();
 
                     if (parent == null) return null;
 
@@ -113,7 +108,7 @@ namespace SolidworksWrapper.Components
             {
                 if (_children == null)
                 {
-                    _children = new SolidworksComponents(_component.GetChildren());
+                    _children = new SolidworksComponents(BaseObject.GetChildren());
                 }
 
                 return _children;
@@ -126,15 +121,7 @@ namespace SolidworksWrapper.Components
         /// <returns></returns>
         public bool Select()
         {
-            return _component.Select4(true, null, false);
-        }
-
-        public void Dispose()
-        {
-            if (_component != null)
-            {
-                Marshal.ReleaseComObject(_component);
-            }
+            return BaseObject.Select4(true, null, false);
         }
     }
 }

@@ -92,7 +92,10 @@
     <Compile Include="Dimensions\SolidworksDimension.cs" />
     <Compile Include="Documents\SolidworksDrawingDocument.cs" />
     <Compile Include="Documents\SolidworksDocument.cs" />
+    <Compile Include="Drawing\Dimensions\Enums\DimensionOrientationEnum.cs" />
+    <Compile Include="Drawing\Dimensions\Enums\DimensionTypeEnum.cs" />
     <Compile Include="Drawing\Edge\SolidworksDrawingEdge.cs" />
+    <Compile Include="Drawing\Edge\SolidworksEdgeExtensionMethods.cs" />
     <Compile Include="Drawing\Enums\AlignmentTypeEnum.cs" />
     <Compile Include="Drawing\Enums\BomAnchorLocationEnum.cs" />
     <Compile Include="Drawing\Enums\BomTypeEnum.cs" />

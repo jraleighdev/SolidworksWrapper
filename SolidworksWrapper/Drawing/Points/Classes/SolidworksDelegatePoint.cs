@@ -32,5 +32,9 @@ namespace SolidworksWrapper.Drawing.Points.Classes
         {
             _action.Invoke();
         }
+
+        public void Dispose()
+        {
+        }
     }
 }

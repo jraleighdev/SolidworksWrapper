@@ -8,7 +8,7 @@ using SolidworksWrapper.Drawing.Points.Enums;
 
 namespace SolidworksWrapper.Drawing.Points.Interfaces
 {
-    public interface ISolidworksPoint
+    public interface ISolidworksPoint : IDisposable
     {
         PointTypeEnum Type { get; }
 

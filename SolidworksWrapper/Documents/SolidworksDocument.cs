@@ -19,6 +19,11 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
+using SolidworksWrapper.Drawing.Dimensions.Enums;
+using SolidworksWrapper.Drawing.Points.Extensions;
+using SolidworksWrapper.Drawing.Points.Interfaces;
+using SolidworksWrapper.Drawing.Views;
+using SolidworksWrapper.General;
 
 namespace SolidworksWrapper.Documents
 {
@@ -193,7 +198,7 @@ namespace SolidworksWrapper.Documents
 
             if (_drawingDocument == null)
             {
-                _drawingDocument = new SolidworksDrawingDocument(AsDrawing());
+                _drawingDocument = new SolidworksDrawingDocument(this, AsDrawing());
             }
 
             return _drawingDocument;
@@ -332,6 +337,11 @@ namespace SolidworksWrapper.Documents
             (int) swSelectOption_e.swSelectOptionDefault);
 
         /// <summary>
+        /// Selects the mid point of the selected object
+        /// </summary>
+        public void SelectMidPoint() => BaseObject.SelectMidpoint();
+
+            /// <summary>
         /// Deletes the selected item in the document
         /// </summary>
         /// <param name="deleteOption"></param>
@@ -443,6 +453,103 @@ namespace SolidworksWrapper.Documents
             if (!IsAssemblyDoc) throw new Exception("Document must be an assembly document");
 
             AsAssembly().ReplaceComponents(fileName, configuration, replaceAllInstace, reAttachMates);
+        }
+
+        #endregion
+
+        #region Dimensions
+
+        public void AddDim(ISolidworksPoint pointOne, ISolidworksPoint pointTwo,
+            DimensionOrientationEnum type, double x, double y)
+        {
+            ClearSelection();
+
+            if (pointOne == null || pointTwo == null) return;
+
+            pointOne.Select();
+
+            pointTwo.Select();
+
+            switch (type)
+            {
+                case DimensionOrientationEnum.Horizontal:
+                    BaseObject.AddHorizontalDimension2(UnitManager.UnitsToSolidworks(x),
+                        UnitManager.UnitsToSolidworks(y), 0);
+                    break;
+                case DimensionOrientationEnum.Vertical:
+                    BaseObject.AddHorizontalDimension2(UnitManager.UnitsToSolidworks(x),
+                        UnitManager.UnitsToSolidworks(y), 0);
+
+                    break;
+            }
+        }
+
+        public void AddOrdinateDim(SolidworksDrawingView view, List<ISolidworksPoint> points, DimensionOrientationEnum type, double offset = 0.25)
+        {
+            if (points == null || points.Count < 2)
+            {
+                throw new ArgumentException("Points must contain at least two values");
+            }
+
+            var uniquePoints = type == DimensionOrientationEnum.Horizontal
+                ? points.RemoveDuplicateXValues()
+                : points.RemoveDuplicateYValues();
+
+            ClearSelection();
+
+            uniquePoints.SelectAll();
+
+            var x = 0.00;
+            var y = 0.00;
+
+            var firstPoint = uniquePoints.First();
+
+            switch (type)
+            {
+                case DimensionOrientationEnum.Vertical:
+
+                    if (firstPoint.X < view.CenterX)
+                    {
+                        x = view.MinX - Math.Abs(offset);
+                    }
+                    else
+                    {
+                        x = view.MaxX + offset;
+                    }
+
+                    y = firstPoint.Y;
+
+                    break;
+                case DimensionOrientationEnum.Horizontal:
+                    if (firstPoint.Y < view.CenterY)
+                    {
+                        y = view.MinY - Math.Abs(offset);
+                    }
+                    else
+                    {
+                        y = view.MaxY + offset;
+                    }
+
+                    x = firstPoint.X;
+
+                    break;
+            }
+
+            BaseObject.Extension.AddOrdinateDimension((int) type, UnitManager.UnitsToSolidworks(x),
+                UnitManager.UnitsToSolidworks(y), 0.00);
+
+            BaseObject.SetPickMode();
+        }
+
+        public void AddDiameterDim(ISolidworksPoint point, double x, double y)
+        {
+            ClearSelection();
+
+            point.Select();
+
+            BaseObject.AddDiameterDimension2(UnitManager.UnitsToSolidworks(x), UnitManager.UnitsToSolidworks(y), 0);
+
+            ClearSelection();
         }
 
         #endregion
